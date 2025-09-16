@@ -31,8 +31,8 @@ require_once __DIR__ . '/../config/config.php';
         </div>
 
         <div class="auth-buttons">
-            <a href="<?=BASE_URL?>/admin/pages/signin.php" aria-label="My Account"><i class="fas fa-user"></i></a>
+            <a href="<?=BASE_URL?>/profile.php" aria-label="My Account"><i class="fas fa-user"></i></a>
             <a href="#" aria-label="Notifications"><i class="fas fa-bell"></i></a>
-            <a href="#" aria-label="Shopping Cart"><i class="fas fa-shopping-cart"></i></a>
+            <a href="<?=BASE_URL?>/carts.php" aria-label="Shopping Cart"><i class="fas fa-shopping-cart"></i></a>
         </div>
     </header>
