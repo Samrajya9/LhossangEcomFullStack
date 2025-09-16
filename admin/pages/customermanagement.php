@@ -145,7 +145,7 @@ class CustomerManager {
         this.customersPerPage = 10;
         this.editingCustomerId = null;
         // Correct API endpoint
-        this.API_URL = '../api/customers.php'; 
+        this.API_URL = '<?=BASE_URL?>/api/customers.php'; 
     }
 
     async init() {

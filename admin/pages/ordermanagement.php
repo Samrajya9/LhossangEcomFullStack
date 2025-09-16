@@ -110,7 +110,7 @@ if(!isLoggedIn() || !isAdmin()){
 <script>
 class OrderManager {
     constructor() {
-        this.API_URL = '../api/orders.php';
+        this.API_URL = '<?=BASE_URL?>/api/orders.php';
         this.currentPage = 1;
         this.ordersPerPage = 10;
     }
@@ -159,7 +159,7 @@ class OrderManager {
             const stats = result.data;
             statsContainer.innerHTML = `
                 <div class="stat-card"><h3>Total Orders</h3><p>${stats.total_orders || 0}</p></div>
-                <div class="stat-card"><h3>Total Revenue</h3><p>$${parseFloat(stats.total_revenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p></div>
+                <div class="stat-card"><h3>Total Revenue</h3><p><?=CURRENCY?>${parseFloat(stats.total_revenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p></div>
                 <div class="stat-card"><h3>Pending</h3><p>${stats.pending_orders || 0}</p></div>
                 <div class="stat-card"><h3>Delivered</h3><p>${stats.delivered_orders || 0}</p></div>
             `;
@@ -218,7 +218,7 @@ class OrderManager {
                     <td><strong>#${order.id}</strong></td>
                     <td>${order.customer_name || 'N/A'}</td>
                     <td>${new Date(order.order_date).toLocaleDateString()}</td>
-                    <td>$${parseFloat(order.total_amount).toFixed(2)}</td>
+                    <td><?=CURRENCY?>${parseFloat(order.total_amount).toFixed(2)}</td>
                     <td><span class="status-badge status-${statusClass}">${order.status}</span></td>
                     <td>
                         <div class="action-buttons">

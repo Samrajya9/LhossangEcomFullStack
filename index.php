@@ -1,7 +1,11 @@
 <?php 
-$pageTitle = "InfinityWaves - Premium Home Audio";
+require_once __DIR__ . '/config/config.php';
+
+
 include __DIR__ . '/includes/header.php'; 
 include __DIR__ . '/includes/navigation.php';
+$pageTitle = "InfinityWaves - Premium Home Audio";
+
 ?>
 <main>
     <section class="main-content-area">

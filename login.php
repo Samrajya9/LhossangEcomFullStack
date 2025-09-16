@@ -1,10 +1,11 @@
 <?php
-// /opt/lampp/htdocs/infinityAdmin/customer_login.php
+// file_full_path = /opt/lampp/htdocs/infinityAdmin/customer_login.php
+
+require_once __DIR__ . '/config/config.php';
 
 require_once __DIR__ . '/utils/authFunctions.php';
 // Include necessary files for database functions and configuration.
 require_once __DIR__ . '/utils/customerFunctions.php';
-require_once __DIR__ . '/config/config.php';
 
 // If the user is already logged in, redirect them to the homepage.
 if(isLoggedIn()){
@@ -44,14 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// --- PAGE DISPLAY LOGIC ---
 $pageTitle = "Customer Login";
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navigation.php';
 ?>
 
 <style>
-    /* Add some basic styling for the login form */
     .login-container {
         max-width: 400px;
         margin: 50px auto;

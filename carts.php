@@ -21,6 +21,9 @@ if (!isLoggedIn()) {
     include __DIR__ . '/includes/footer.php';
     exit;
 }
+
+// Get the logged-in customer's ID from the session.
+$customerId = $_SESSION['customer_id'] ?? null;
 ?>
 <main class="main-content-area">
 
@@ -43,17 +46,32 @@ if (!isLoggedIn()) {
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
 
-<!-- JavaScript to fetch and display cart items -->
+<!-- MODIFICATION: Script updated to use notifications instead of alerts -->
 <script>
+// Reusable Notification Function
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Animate out and remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        notification.style.transition = 'all 0.5s ease';
+        setTimeout(() => notification.remove(), 500);
+    }, 3000);
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const cartContainer = document.getElementById('cart-container');
     const cartSummary = document.getElementById('cart-summary');
+    const customerId = <?php echo json_encode($customerId); ?>;
+    const cart = JSON.parse(localStorage.getItem('cart')) || {};
+    const productIds = Object.keys(cart);
 
-    // Get cart data from localStorage.
-    const cartProductIds = JSON.parse(localStorage.getItem('cart')) || [];
-
-    if (cartProductIds.length === 0) {
-        // If the cart is empty, display a message.
+    if (productIds.length === 0) {
         cartContainer.innerHTML = `
             <div class="cart-info-container">
                 <i class="fas fa-shopping-cart"></i>
@@ -62,32 +80,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                  <a href="<?=BASE_URL?>/products.php" class="btn">Browse Products</a>
             </div>
         `;
-        // Hide the summary container if the cart is empty
         cartSummary.style.display = 'none';
         return;
     }
-
-    // Count the quantity of each product.
-    const productQuantities = cartProductIds.reduce((acc, id) => {
-        acc[id] = (acc[id] || 0) + 1;
-        return acc;
-    }, {});
     
-    // Get the unique product IDs to fetch their details.
-    const uniqueProductIds = Object.keys(productQuantities);
-
     try {
-        // Fetch product details from the API.
-        const response = await fetch(`<?php echo BASE_URL; ?>/api/products.php?action=get_multiple&ids=${uniqueProductIds.join(',')}`);
-        
-        if (!response.ok) {
-            throw new Error('Failed to fetch product data.');
-        }
+        const response = await fetch(`<?php echo BASE_URL; ?>/api/products.php?action=get_multiple&ids=${productIds.join(',')}`);
+        if (!response.ok) throw new Error('Failed to fetch product data.');
         
         const result = await response.json();
-        
         if (result.success && result.data) {
-            displayCartItems(result.data, productQuantities);
+            displayCartItems(result.data, cart);
         } else {
             throw new Error(result.error || 'Could not find product data.');
         }
@@ -95,7 +98,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         cartContainer.innerHTML = `<div class="cart-info-container"><p class="error-message">Error loading cart: ${error.message}</p></div>`;
     }
 
-    function displayCartItems(products, quantities) {
+    function displayCartItems(products, cartQuantities) {
         let cartHTML = `
             <table class="cart-table">
                 <thead>
@@ -113,7 +116,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         let totalPrice = 0;
 
         products.forEach(product => {
-            const quantity = quantities[product.id];
+            const quantity = cartQuantities[product.id];
             const subtotal = product.price * quantity;
             totalPrice += subtotal;
             
@@ -125,11 +128,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                            <strong>${product.name}</strong>
                         </div>
                     </td>
-                    <td>Rs. ${parseFloat(product.price).toFixed(2)}</td>
-                    <td class="cart-quantity">
-                         ${quantity}
-                    </td>
-                    <td><strong>Rs. ${subtotal.toFixed(2)}</strong></td>
+                    <td><?=CURRENCY?>${parseFloat(product.price).toFixed(2)}</td>
+                    <td class="cart-quantity">${quantity}</td>
+                    <td><strong><?=CURRENCY?>${subtotal.toFixed(2)}</strong></td>
                     <td>
                         <button class="remove-from-cart-btn" data-product-id="${product.id}" title="Remove item">
                             <i class="fas fa-trash"></i> Remove
@@ -142,13 +143,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         cartHTML += '</tbody></table>';
         cartContainer.innerHTML = cartHTML;
         
-        // --- NEW: Display enhanced cart summary ---
         const summaryHTML = `
             <div class="cart-summary-card">
                 <h2>Order Summary</h2>
                 <div class="summary-row">
                     <span>Subtotal</span>
-                    <span>Rs. ${totalPrice.toFixed(2)}</span>
+                    <span><?=CURRENCY?>${totalPrice.toFixed(2)}</span>
                 </div>
                 <div class="summary-row">
                     <span>Shipping</span>
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <div class="summary-divider"></div>
                 <div class="summary-row total-row">
                     <span>Total</span>
-                    <span>Rs. ${totalPrice.toFixed(2)}</span>
+                    <span><?=CURRENCY?>${totalPrice.toFixed(2)}</span>
                 </div>
                 <button class="checkout-btn">Proceed to Checkout</button>
             </div>
@@ -165,21 +165,73 @@ document.addEventListener('DOMContentLoaded', async function() {
         cartSummary.innerHTML = summaryHTML;
         cartSummary.style.display = 'block';
 
-        // Add event listeners to "Remove" buttons.
         document.querySelectorAll('.remove-from-cart-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const productIdToRemove = this.dataset.productId;
-                
-                // Filter out all instances of this product ID.
-                let updatedCart = cartProductIds.filter(id => id !== productIdToRemove);
-                
-                // Save the updated cart back to localStorage.
-                localStorage.setItem('cart', JSON.stringify(updatedCart));
-                
-                // Reload the page to reflect changes.
+                let currentCart = JSON.parse(localStorage.getItem('cart')) || {};
+                delete currentCart[productIdToRemove];
+                localStorage.setItem('cart', JSON.stringify(currentCart));
                 window.location.reload();
             });
         });
+
+        const checkoutButton = document.querySelector('.checkout-btn');
+        checkoutButton.addEventListener('click', () => {
+            checkoutButton.disabled = true;
+            checkoutButton.textContent = 'Processing...';
+            placeOrder(products, cartQuantities, totalPrice);
+        });
+    }
+
+    async function placeOrder(products, quantities, total) {
+        if (!customerId) {
+            // MODIFIED: Replaced alert with notification
+            showNotification('Could not verify customer session. Please log in again.', 'error');
+            window.location.href = 'login.php';
+            return;
+        }
+
+        const orderItems = products.map(product => ({
+            product_id: product.id,
+            quantity: quantities[product.id],
+            price: product.price
+        }));
+
+        const orderData = {
+            customer_id: customerId,
+            items: orderItems,
+            total_amount: total,
+            shipping_address: 'User Address from Profile', // Placeholder
+            notes: 'Order placed from website.' // Placeholder
+        };
+
+        try {
+            const response = await fetch('<?php echo BASE_URL; ?>/api/orders.php?action=create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // MODIFIED: Replaced alert with notification
+                showNotification('Order placed successfully! Your', 'success');
+                localStorage.removeItem('cart');
+                // Reload after a short delay so the user can see the notification
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                throw new Error(result.error || 'An unknown error occurred while placing the order.');
+            }
+        } catch (error) {
+            // MODIFIED: Replaced alert with notification
+            showNotification(`Failed to place order: ${error.message}`, 'error');
+            const checkoutButton = document.querySelector('.checkout-btn');
+            checkoutButton.disabled = false;
+            checkoutButton.textContent = 'Proceed to Checkout';
+        }
     }
 });
-</script>```
+</script>

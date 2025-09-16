@@ -127,7 +127,7 @@ class AdminManager {
         this.currentPage = 1;
         this.adminsPerPage = 8;
         this.editingAdminId = null;
-        this.API_URL = '../api/admins.php'; 
+        this.API_URL = '<?=BASE_URL?>/api/admins.php'; 
     }
 
     async init() {

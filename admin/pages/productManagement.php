@@ -1,9 +1,8 @@
 <?php 
 // file_full_path = /opt/lampp/htdocs/infinityAdmin/pages/productManagement.php
-
 require_once __DIR__ . '/../../config/config.php';
-require_once BASE_PATH . '/utils/authFunctions.php';
 
+require_once BASE_PATH . '/utils/authFunctions.php';
 
 if(!isLoggedIn() || !isAdmin()){
     header("Location: signin.php");
@@ -11,7 +10,6 @@ if(!isLoggedIn() || !isAdmin()){
 }
 $pageTitle ="Product Management" ;
 ?>
-
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar.php'; ?> 
 
@@ -154,8 +152,8 @@ class ProductManager {
         this.currentPage = 1;
         this.productsPerPage = 6;
         this.editingProductId = null;
-        this.API_URL = '../api/products.php';
-        this.CATEGORIES_API_URL = '../api/categories.php'; 
+        this.API_URL = '<?=BASE_URL?>/api/products.php';
+        this.CATEGORIES_API_URL = '<?=BASE_URL?>/api/categories.php'; 
     }
 
     async init() {
@@ -265,13 +263,13 @@ class ProductManager {
             return `
             <div class="product-card">
                 <div class="product-image">
-                    ${product.image_url ? `<img src="../${product.image_url}" alt="${product.name}">` : '<i class="fas fa-box-open"></i>'}
+                    ${product.image_url ? `<img src="<?=BASE_URL?>${product.image_url}" alt="${product.name}">` : '<i class="fas fa-box-open"></i>'}
                     <div class="product-status status-${statusClass}">${statusText}</div>
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">${product.name}</h3>
                     <p class="product-category">${product.category_name || 'Uncategorized'}</p>
-                    <div class="product-price">$${parseFloat(product.price).toFixed(2)}</div>
+                    <div class="product-price"><?=CURRENCY?>${parseFloat(product.price).toFixed(2)}</div>
                     <div class="product-stats">
                         <div class="stat-item">
                             <div class="stat-value">${product.stock_quantity}</div>
