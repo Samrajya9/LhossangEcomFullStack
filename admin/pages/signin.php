@@ -19,7 +19,7 @@ $pageTitle = "Sign In";
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title><?php echo $pageTitle; ?> | InfinityWaves</title>
 <!-- Link to the consolidated stylesheet -->
-<link rel="stylesheet" href="/infinityAdmin/assets/css/admin-styles.css">
+<link rel="stylesheet" href="<?=BASE_URL?>/assets/css/admin-styles.css">
 </head>
 <body>
 <div class="auth-wrapper">
@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             // Use a relative URL for portability
-            const response = await fetch("/infinityAdmin/api/admins.php?action=login", {
+            const response = await fetch("<?=BASE_URL?>/api/admins.php?action=login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
