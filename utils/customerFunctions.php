@@ -47,14 +47,15 @@ function getCustomerByEmail($email) {
     }
 }
 
+
 /**
- * Create new customer
+ * Create new customer (UPDATED with password handling)
  */
 function createCustomer($data) {
     global $conn;
     
     // Validate required fields
-    $required = ['first_name', 'last_name', 'email'];
+    $required = ['first_name', 'last_name', 'email', 'password'];
     foreach ($required as $field) {
         if (empty($data[$field])) {
             return ['error' => "Field '$field' is required"];
@@ -72,16 +73,21 @@ function createCustomer($data) {
         $existing = fetchOne($conn, $checkSql, [$data['email']], 's');
         
         if ($existing) {
-            return ['error' => 'Email already exists'];
+            return ['error' => 'A customer with this email already exists.'];
         }
+
+        // Hash the password for secure storage
+        $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
         
-        // Insert customer
-        $sql = "INSERT INTO customers (first_name, last_name, email, phone, address, city, state, zip_code, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Insert customer with the hashed password
+        // IMPORTANT: Ensure your 'customers' table has a 'password_hash' column (e.g., VARCHAR(255))
+        $sql = "INSERT INTO customers (first_name, last_name, email, password_hash, phone, address, city, state, zip_code, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
             $data['first_name'],
             $data['last_name'],
             $data['email'],
+            $passwordHash, // Store the hash, not the plain password
             $data['phone'] ?? '',
             $data['address'] ?? '',
             $data['city'] ?? '',
@@ -90,7 +96,7 @@ function createCustomer($data) {
             $data['country'] ?? ''
         ];
         
-        $stmt = executeQuery($conn, $sql, $params, 'sssssssss');
+        $stmt = executeQuery($conn, $sql, $params, 'ssssssssss');
         
         $customerId = getLastInsertId($conn);
         $stmt->close();
@@ -102,10 +108,13 @@ function createCustomer($data) {
         ];
         
     } catch (Exception $e) {
+        // Check for specific duplicate entry error from the database
+        if ($conn->errno === 1062) {
+             return ['error' => 'A customer with this email already exists.'];
+        }
         return ['error' => $e->getMessage()];
     }
 }
-
 /**
  * Update customer
  */

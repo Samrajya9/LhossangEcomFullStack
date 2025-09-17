@@ -20,6 +20,7 @@ $isUserLoggedIn = isLoggedIn();
 ?>
 
 <main class="main-content-area">
+        <div class="container"> <!-- ADDED THIS WRAPPER -->
     <h1 class="section-title">Our Products</h1>  
     <?php if (!empty($products)): ?>
         <div class="products-grid">
@@ -57,6 +58,8 @@ $isUserLoggedIn = isLoggedIn();
             <p>We couldn't find any products at the moment. Please check back later!</p>
         </div>
     <?php endif; ?>
+            </div>
+
 </main>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

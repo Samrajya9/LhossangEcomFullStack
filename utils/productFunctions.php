@@ -63,11 +63,10 @@ function handleImageUpload($fileData, $oldImagePath = null) {
 
 
 
-
 /**
- * Get all products
+ * Get all products (UPDATED with search functionality)
  */
-function getAllProducts($limit = null, $offset = 0, $categoryId = null, $activeOnly = false) {
+function getAllProducts($limit = null, $offset = 0, $categoryId = null, $activeOnly = false, $searchTerm = null) {
     global $conn;
     try {
         $sql = "SELECT p.id, p.name, p.description, p.price, p.category_id, 
@@ -88,6 +87,15 @@ function getAllProducts($limit = null, $offset = 0, $categoryId = null, $activeO
         
         if ($activeOnly) {
             $conditions[] = "p.is_active = 1";
+        }
+        
+        // ADDED: Handle search term
+        if ($searchTerm !== null && !empty($searchTerm)) {
+            $conditions[] = "(p.name LIKE ? OR p.description LIKE ?)";
+            $searchTermWildcard = "%" . $searchTerm . "%";
+            $params[] = $searchTermWildcard;
+            $params[] = $searchTermWildcard;
+            $types .= 'ss';
         }
         
         if (!empty($conditions)) {
@@ -323,17 +331,38 @@ function getLowStockProducts($threshold = 10) {
 }
 
 /**
- * Get total products count
+ * Get total products count (UPDATED with search functionality)
  */
-function getTotalProductsCount($activeOnly = false) {
+function getTotalProductsCount($categoryId = null, $activeOnly = false, $searchTerm = null) {
     global $conn;
     try {
-        $sql = "SELECT COUNT(*) as count FROM products";
+        $sql = "SELECT COUNT(*) as count FROM products p";
+        
+        $conditions = [];
         $params = [];
         $types = '';
+
+        if ($categoryId !== null) {
+            $conditions[] = "p.category_id = ?";
+            $params[] = $categoryId;
+            $types .= 'i';
+        }
         
         if ($activeOnly) {
-            $sql .= " WHERE is_active = 1";
+            $conditions[] = "p.is_active = 1";
+        }
+
+        // ADDED: Handle search term
+        if ($searchTerm !== null && !empty($searchTerm)) {
+            $conditions[] = "(p.name LIKE ? OR p.description LIKE ?)";
+            $searchTermWildcard = "%" . $searchTerm . "%";
+            $params[] = $searchTermWildcard;
+            $params[] = $searchTermWildcard;
+            $types .= 'ss';
+        }
+        
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(' AND ', $conditions);
         }
         
         return getCount($conn, $sql, $params, $types);
