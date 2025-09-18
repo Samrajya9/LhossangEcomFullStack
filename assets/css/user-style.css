@@ -409,7 +409,59 @@ a {
   border-radius: 10px;
   box-shadow: var(--shadow-sm);
 }
-/* ... (other single-product styles remain the same) ... */
+.product-gallery {
+  flex: 1;
+}
+.product-gallery img {
+  width: 100%;
+  border-radius: 10px;
+}
+.product-details-content {
+  flex: 1;
+}
+.product-details-content .category {
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.product-details-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  line-height: 1.2;
+}
+.product-details-content .price {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #28a745;
+  margin-bottom: 20px;
+}
+.product-details-content .stock-status {
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+.stock-status .in-stock {
+  color: #28a745;
+}
+.stock-status .out-of-stock {
+  color: #dc3545;
+}
+.product-details-content .description {
+  line-height: 1.7;
+  color: #495057;
+  margin-bottom: 30px;
+}
+.product-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.product-actions input[type="number"] {
+  width: 70px;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #ced4da;
+  text-align: center;
+}
 
 /* Cart Page */
 .cart-page-container {
@@ -798,4 +850,50 @@ a {
   .products-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.centered-container {
+  text-align: center;
+  background: white;
+  padding: 60px 40px;
+  border-radius: 15px;
+  box-shadow: var(--shadow-md);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Empty Cart / Loading States */
+.cart-info-container {
+  background: var(--background-white);
+  text-align: center;
+  padding: 60px 40px;
+  border-radius: 15px;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+.cart-info-container i {
+  font-size: 50px;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+.cart-info-container h2 {
+  font-size: 1.8rem;
+  color: var(--dark-color);
+  margin-bottom: 10px;
+}
+.cart-info-container p {
+  color: var(--text-muted);
+  margin-bottom: 30px;
+}
+.cart-info-container .btn {
+  text-decoration: none;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 25px;
+  border-radius: 50px;
+  display: inline-block;
+  transition: background-color 0.3s;
+}
+.cart-info-container .btn:hover {
+  background-color: var(--primary-hover);
 }
