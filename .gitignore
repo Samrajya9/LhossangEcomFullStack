@@ -1,0 +1,5 @@
+# Ignore everything inside uploads/products
+uploads/products/*
+
+# But keep this file
+!uploads/products/.gitkeep
