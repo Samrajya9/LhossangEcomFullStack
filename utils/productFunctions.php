@@ -1,6 +1,8 @@
 <?php
 // file_full_path = /opt/lampp/htdocs/infinityAdmin/utils/productFunctions.php
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/connection.php';
+
 
 
 /**
@@ -9,13 +11,64 @@ require_once __DIR__ . '/../config/connection.php';
  * @param string|null $oldImagePath - The path of the old image to delete on update.
  * @return array - ['success' => true, 'path' => '...'] or ['error' => '...']
  */
+// function handleImageUpload($fileData, $oldImagePath = null) {
+//     if (!isset($fileData) || $fileData['error'] !== UPLOAD_ERR_OK) {
+//         return ['error' => 'No image uploaded or an upload error occurred.'];
+//     }
+//     // Absolute path to the uploads folder
+//     $uploadDir = '/opt/lampp/htdocs/infinityAdmin/uploads/products/';
+
+//     // Ensure the directory exists
+//     if (!is_dir($uploadDir)) {
+//         mkdir($uploadDir, 0777, true);
+//     }
+
+//     // File validation
+//     $maxSize = 5 * 1024 * 1024; // 5MB
+//     $allowedTypes = ['images/jpeg', 'images/png', 'images/jpg'];
+    
+//     if ($fileData['size'] > $maxSize) {
+//         return ['error' => 'Image file is too large. Maximum size is 5MB.'];
+//     }
+    
+//     $fileMimeType = mime_content_type($fileData['tmp_name']);
+//     if (!in_array($fileMimeType, $allowedTypes)) {
+//         return ['error' => 'Invalid image format. Only JPG and PNG are allowed.'];
+//     }
+
+//     // Generate unique filename
+//     $fileExtension = pathinfo($fileData['name'], PATHINFO_EXTENSION);
+//     $newFileName = uniqid('product_', true) . '.' . $fileExtension;
+//     $destination = $uploadDir . $newFileName;
+
+//     // Log the paths for debugging
+//     error_log("TMP FILE: " . $fileData['tmp_name']);
+//     error_log("DESTINATION: " . $destination);
+
+//     // Move the uploaded file
+//     if (move_uploaded_file($fileData['tmp_name'], $destination)) {
+//         // Delete old image if it exists
+//         if ($oldImagePath) {
+//             $fullOldPath = '/opt/lampp/htdocs/infinityAdmin/' . ltrim($oldImagePath, '/');
+//             if (file_exists($fullOldPath) && is_file($fullOldPath)) {
+//                 unlink($fullOldPath);
+//             }
+//         }
+//         // Return relative path for database
+//         return ['success' => true, 'path' => '/uploads/products/' . $newFileName];
+//     } else {
+//         error_log("Failed to move uploaded file from " . $fileData['tmp_name'] . " to " . $destination);
+//         return ['error' => 'Failed to move uploaded file.'];
+//     }
+// }
+
+
 function handleImageUpload($fileData, $oldImagePath = null) {
     if (!isset($fileData) || $fileData['error'] !== UPLOAD_ERR_OK) {
         return ['error' => 'No image uploaded or an upload error occurred.'];
     }
-
     // Absolute path to the uploads folder
-    $uploadDir = '/opt/lampp/htdocs/infinityAdmin/uploads/products/';
+    $uploadDir = BASE_PATH.'/uploads/products/';
 
     // Ensure the directory exists
     if (!is_dir($uploadDir)) {
@@ -24,15 +77,39 @@ function handleImageUpload($fileData, $oldImagePath = null) {
 
     // File validation
     $maxSize = 5 * 1024 * 1024; // 5MB
-    $allowedTypes = ['images/jpeg', 'images/png', 'images/jpg'];
+    $allowedTypes = [
+        'image/jpeg',
+        'image/jpg', 
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/bmp',
+        'image/tiff',
+        'image/svg+xml',
+        'image/x-icon',
+        'image/vnd.microsoft.icon'
+    ];
     
     if ($fileData['size'] > $maxSize) {
         return ['error' => 'Image file is too large. Maximum size is 5MB.'];
     }
     
     $fileMimeType = mime_content_type($fileData['tmp_name']);
+    
+    // Additional check: verify it's an image by checking if it starts with 'image/'
+    if (!$fileMimeType || strpos($fileMimeType, 'image/') !== 0) {
+        return ['error' => 'Invalid file format. Only image files are allowed.'];
+    }
+    
+    // Optional: More specific validation for known image types
     if (!in_array($fileMimeType, $allowedTypes)) {
-        return ['error' => 'Invalid image format. Only JPG and PNG are allowed.'];
+        // Log the mime type for debugging unknown image formats
+        error_log("Unknown image type detected: " . $fileMimeType);
+        
+        // Still allow it if it starts with 'image/' - this covers any image format
+        if (strpos($fileMimeType, 'image/') !== 0) {
+            return ['error' => 'Invalid image format detected: ' . $fileMimeType];
+        }
     }
 
     // Generate unique filename
@@ -43,12 +120,13 @@ function handleImageUpload($fileData, $oldImagePath = null) {
     // Log the paths for debugging
     error_log("TMP FILE: " . $fileData['tmp_name']);
     error_log("DESTINATION: " . $destination);
+    error_log("MIME TYPE: " . $fileMimeType);
 
     // Move the uploaded file
     if (move_uploaded_file($fileData['tmp_name'], $destination)) {
         // Delete old image if it exists
         if ($oldImagePath) {
-            $fullOldPath = '/opt/lampp/htdocs/infinityAdmin/' . ltrim($oldImagePath, '/');
+            $fullOldPath = BASE_PATH . ltrim($oldImagePath, '/');
             if (file_exists($fullOldPath) && is_file($fullOldPath)) {
                 unlink($fullOldPath);
             }
@@ -60,7 +138,6 @@ function handleImageUpload($fileData, $oldImagePath = null) {
         return ['error' => 'Failed to move uploaded file.'];
     }
 }
-
 
 
 /**
@@ -139,12 +216,8 @@ function getProductById($id) {
  * Create new product
  */
 function createProduct($data, $files) {
-    global $conn;
-    
-    // ... (your existing validation for name, price, etc.)
-    
+    global $conn;    
     $data['image_url'] = null; // Default to null
-
     // Handle image upload if a file is provided
     if (isset($files['image']) && $files['image']['error'] == UPLOAD_ERR_OK) {
         $uploadResult = handleImageUpload($files['image']);
@@ -177,6 +250,7 @@ function createProduct($data, $files) {
         return ['error' => 'Database error: ' . $e->getMessage()];
     }
 }
+
 function getProductsByIds($ids) {
     global $conn;
 

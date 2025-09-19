@@ -18,9 +18,8 @@ define('BASE_PATH', dirname(__DIR__));
 $FolderName = basename(BASE_PATH); // e.g., infinityAdmin
 $XamppPort = '8080'; // Change this if your XAMPP uses a different port
 
-// define('BASE_URL', 'http://127.0.0.1:'. $XamppPort .'/' . $FolderName);
+define('BASE_URL', 'http://127.0.0.1:'. $XamppPort .'/' . $FolderName);
 
-define('BASE_URL', 'http://localhost/');
 
 
 // --- Database Connection Details ---

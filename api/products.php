@@ -76,8 +76,7 @@ function handleGetRequest($action, $id) {
             successResponse($product, 'Product retrieved successfully');
             break;
           case 'count':
-            $activeOnly = isset($_GET['active_only']) ? (bool)$_GET['active_only'] : false;
-            $count = getTotalProductsCount($activeOnly);
+            $count = getTotalProductsCount();
             // Ensure the response format is consistent with other count endpoints
             successResponse(['count' => $count], 'Products count retrieved successfully');
             break;
